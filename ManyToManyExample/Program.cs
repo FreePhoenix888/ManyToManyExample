@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Platform.Collections.Lists;
 using Platform.Data;
 using Platform.Data.Doublets;
 using Platform.Data.Doublets.Decorators;
@@ -14,7 +13,6 @@ namespace ManyToManyExample
     class Program
     {
         private static AddressToRawNumberConverter<uint> _addressToRawNumberConverter;
-        private static RawNumberToAddressConverter<uint> _rawNumberToAddressConverter;
         private static uint _root;
         private static uint _object;
         private static uint _tag;
@@ -30,18 +28,13 @@ namespace ManyToManyExample
                 var links = disposableLinks.DecorateWithAutomaticUniquenessAndUsagesResolution();
                 links = new LinksItselfConstantToSelfReferenceResolver<uint>(links);
 
-                InitConverters(links);
+                _addressToRawNumberConverter = new AddressToRawNumberConverter<uint>();
+
                 InitMarkers(links);
                 GenerateData(links);
                 QueryFromTagsByObjects(links);
                 QueryFromObjecsByTags(links);
             }
-        }
-
-        private static void InitConverters(ILinks<uint> links)
-        {
-            _addressToRawNumberConverter = new AddressToRawNumberConverter<uint>();
-            _rawNumberToAddressConverter = new RawNumberToAddressConverter<uint>();
         }
 
         private static void InitMarkers(ILinks<uint> links)
