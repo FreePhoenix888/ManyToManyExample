@@ -25,10 +25,10 @@ namespace AdvancedExample
         private Range<uint> _objectsRange;
         private Range<uint> _tagsRange;
 
-        public ObjectsAndTagsStorage()
+        public ObjectsAndTagsStorage(string path)
         {
             var constants = new LinksConstants<uint>(enableExternalReferencesSupport: true);
-            _memory = new FileMappedResizableDirectMemory("db.links");
+            _memory = new FileMappedResizableDirectMemory(path);
             _memoryManager = new ResizableDirectMemoryLinks<uint>(_memory, 48L * 1024L * 1024L * 1024L, constants, useAvlBasedIndex: false);
 
             _links = _memoryManager.DecorateWithAutomaticUniquenessAndUsagesResolution();
@@ -93,6 +93,12 @@ namespace AdvancedExample
                     }
                 }
             }
+            else
+            {
+                var cursor = 4U;
+                _objectsRange = new Range<uint>(cursor, cursor += (uint)maximumObjects);
+                _tagsRange = new Range<uint>(cursor, cursor += (uint)maximumTags);
+            }
         }
 
         public void QueryFromTagsByObjects()
@@ -142,7 +148,62 @@ namespace AdvancedExample
             }
         }
 
-        public List<uint> GetObjectsByTags(params uint[] tags)
+        public List<uint> GetObjectsByAllTags(params uint[] tags)
+        {
+            var matchedObjects = new HashSet<uint>();
+            var nonMatchedObjects = new HashSet<uint>();
+            for (var i = 0; i < tags.Length; i++)
+            {
+                AddObjectsByAllTag(matchedObjects, nonMatchedObjects, tags);
+            }
+            return matchedObjects.ToList();
+        }
+
+        private void AddObjectsByAllTag(HashSet<uint> matchedObjects, HashSet<uint> nonMatchedObjects, params uint[] tags)
+        {
+            var any = _links.Constants.Any;
+            var @continue = _links.Constants.Continue;
+            var source = _links.Constants.SourcePart;
+            for (var i = 0; i < tags.Length; i++)
+            {
+                var query = new Link<uint>(any, any, tags[i]);
+                _links.Each(link =>
+                {
+                    var @object = link[source];
+                    if (nonMatchedObjects.Contains(@object))
+                    {
+                        return @continue;
+                    }
+                    if (!matchedObjects.Contains(@object))
+                    {
+                        bool matched = CheckObjectContainsAllTags(@object, tags);
+                        if (matched)
+                        {
+                            matchedObjects.Add(@object);
+                        }
+                        else
+                        {
+                            nonMatchedObjects.Add(@object);
+                        }
+                    }
+                    return @continue;
+                }, query);
+            }
+        }
+
+        private bool CheckObjectContainsAllTags(uint @object, params uint[] tags)
+        {
+            for (var i = 0; i < tags.Length; i++)
+            {
+                if (!_links.Exists(@object, tags[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public List<uint> GetObjectsByAnyTags(params uint[] tags)
         {
             var objects = new HashSet<uint>();
             for (var i = 0; i < tags.Length; i++)
