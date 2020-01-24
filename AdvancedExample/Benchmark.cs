@@ -19,23 +19,23 @@ namespace AdvancedExample
         }
 
         [Benchmark]
-        public List<uint> GetObjectsBy2Tags()
+        public List<uint> GetObjectsByAll2Tags()
         {
             List<uint> result = null;
             for (int i = 0; i < 10; i++)
             {
-                result = _storage.GetObjectsByAnyTags(_tags2);
+                result = _storage.GetObjectsByAllTags(_tags2);
             }
             return result;
         }
 
         [Benchmark]
-        public List<uint> GetObjectsBy5Tags()
+        public List<uint> GetObjectsByAll5Tags()
         {
             List<uint> result = null;
             for (int i = 0; i < 10; i++)
             {
-                result = _storage.GetObjectsByAnyTags(_tags5);
+                result = _storage.GetObjectsByAllTags(_tags5);
             }
             return result;
         }
