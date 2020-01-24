@@ -1,17 +1,17 @@
-﻿using Platform.Data;
-using Platform.Data.Doublets;
-using Platform.Data.Doublets.Decorators;
-using Platform.Data.Doublets.ResizableDirectMemory.Generic;
-using Platform.Data.Numbers.Raw;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Platform.Disposables;
 using Platform.Memory;
 using Platform.Ranges;
 using Platform.Setters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Platform.Data;
+using Platform.Data.Doublets;
+using Platform.Data.Doublets.Decorators;
+using Platform.Data.Doublets.ResizableDirectMemory.Generic;
+using Platform.Data.Numbers.Raw;
 
-namespace AdvancedExample
+namespace DataLayer
 {
     public class ObjectsAndTagsStorage : DisposableBase
     {
@@ -25,11 +25,11 @@ namespace AdvancedExample
         private Range<uint> _objectsRange;
         private Range<uint> _tagsRange;
 
-        public ObjectsAndTagsStorage(string path)
+        public ObjectsAndTagsStorage(string path, long minimumStorageSizeInBytes)
         {
             var constants = new LinksConstants<uint>(enableExternalReferencesSupport: true);
             _memory = new FileMappedResizableDirectMemory(path);
-            _memoryManager = new ResizableDirectMemoryLinks<uint>(_memory, 48L * 1024L * 1024L * 1024L, constants, useAvlBasedIndex: false);
+            _memoryManager = new ResizableDirectMemoryLinks<uint>(_memory, minimumStorageSizeInBytes, constants, useAvlBasedIndex: false);
 
             _links = _memoryManager.DecorateWithAutomaticUniquenessAndUsagesResolution();
             _links = new LinksItselfConstantToSelfReferenceResolver<uint>(_links);
@@ -134,7 +134,14 @@ namespace AdvancedExample
 
         private uint GetObject()
         {
-            return GetFirstLinkWithMarker(_object);
+            //return GetFirstLinkWithMarker(_object);
+            return GetRandomObject();
+        }
+
+        private uint GetRandomObject()
+        {
+            Random random = new Random();
+            return (uint)random.Next((int)_objectsRange.Minimum, (int)_objectsRange.Maximum);
         }
 
         public void QueryFromObjecsByTags()

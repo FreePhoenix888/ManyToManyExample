@@ -1,5 +1,6 @@
-﻿using BenchmarkDotNet.Running;
-using System;
+﻿using System;
+using BenchmarkDotNet.Running;
+using DataLayer;
 
 namespace AdvancedExample
 {
@@ -9,7 +10,7 @@ namespace AdvancedExample
 
         //static void Main()
         //{
-        //    var storage = new ObjectsAndTagsStorage(@"F:\DataArchive\db.links");
+        //    var storage = new ObjectsAndTagsStorage(@"F:\DataArchive\db.links", 48L * 1024L * 1024L * 1024L);
         //    storage.InitMarkers();
         //    storage.GenerateData(100000000, 10000, 10);
         //    var tags = new uint[] { storage.GetTag(), storage.GetTag() };

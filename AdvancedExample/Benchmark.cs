@@ -1,5 +1,6 @@
-﻿using BenchmarkDotNet.Attributes;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using BenchmarkDotNet.Attributes;
+using DataLayer;
 
 namespace AdvancedExample
 {
@@ -11,7 +12,7 @@ namespace AdvancedExample
 
         public AdvancedExampleBenchmark()
         {
-            _storage = new ObjectsAndTagsStorage(@"F:\DataArchive\db.links");
+            _storage = new ObjectsAndTagsStorage(@"F:\DataArchive\db.links", 48L * 1024L * 1024L * 1024L);
             _storage.InitMarkers();
             _storage.GenerateData(100000000, 10000, 10);
             _tags2 = new uint[] { _storage.GetTag(), _storage.GetTag() };
