@@ -29,7 +29,7 @@ namespace AdvancedExample
         {
             var constants = new LinksConstants<uint>(enableExternalReferencesSupport: true);
             _memory = new FileMappedResizableDirectMemory("db.links");
-            _memoryManager = new ResizableDirectMemoryLinks<uint>(_memory, ResizableDirectMemoryLinks<uint>.DefaultLinksSizeStep, constants, useAvlBasedIndex: false);
+            _memoryManager = new ResizableDirectMemoryLinks<uint>(_memory, 48L * 1024L * 1024L * 1024L, constants, useAvlBasedIndex: false);
 
             _links = _memoryManager.DecorateWithAutomaticUniquenessAndUsagesResolution();
             _links = new LinksItselfConstantToSelfReferenceResolver<uint>(_links);
@@ -85,9 +85,9 @@ namespace AdvancedExample
                 var random = new Random();
                 for (var i = 0L; i < maximumObjects; i++)
                 {
+                    var @object = (uint)(objectsRangeStart + i);
                     for (var j = 0L; j < maximumTagsPerObject; j++)
                     {
-                        var @object = (uint)random.Next((int)objectsRangeStart, (int)objectsRangeEnd);
                         var tag = (uint)random.Next((int)tagsRangeStart, (int)tagsRangeEnd);
                         _links.GetOrCreate(@object, tag);
                     }

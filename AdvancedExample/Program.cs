@@ -1,4 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
+using System;
 
 namespace AdvancedExample
 {
@@ -8,12 +9,21 @@ namespace AdvancedExample
 
         static void Main()
         {
-            var _storage = new ObjectsAndTagsStorage();
-            _storage.InitMarkers();
-            _storage.GenerateData(100000000, 10000, 10);
-            var _tags = new uint[] { _storage.GetTag(), _storage.GetTag(), _storage.GetTag(), _storage.GetTag(), _storage.GetTag() };
-
-
+            var storage = new ObjectsAndTagsStorage();
+            storage.InitMarkers();
+            storage.GenerateData(100000000, 10000, 10);
+            var tags = new uint[] { storage.GetTag(), storage.GetTag(), storage.GetTag(), storage.GetTag(), storage.GetTag() };
+            Console.WriteLine("Tags: ");
+            for (int i = 0; i < tags.Length; i++)
+            {
+                Console.WriteLine(tags[i]);
+            }
+            var objects = storage.GetObjectsByTags(tags);
+            Console.WriteLine("Objects: ");
+            for (int i = 0; i < objects.Count; i++)
+            {
+                Console.WriteLine(objects[i]);
+            }
         }
     }
 }
