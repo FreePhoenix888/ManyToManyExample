@@ -152,10 +152,7 @@ namespace AdvancedExample
         {
             var matchedObjects = new HashSet<uint>();
             var nonMatchedObjects = new HashSet<uint>();
-            for (var i = 0; i < tags.Length; i++)
-            {
-                AddObjectsByAllTag(matchedObjects, nonMatchedObjects, tags);
-            }
+            AddObjectsByAllTag(matchedObjects, nonMatchedObjects, tags);
             return matchedObjects.ToList();
         }
 
@@ -166,6 +163,10 @@ namespace AdvancedExample
             var source = _links.Constants.SourcePart;
             for (var i = 0; i < tags.Length; i++)
             {
+                if (i > 0 && matchedObjects.Count == 0)
+                {
+                    break;
+                }
                 var query = new Link<uint>(any, any, tags[i]);
                 _links.Each(link =>
                 {

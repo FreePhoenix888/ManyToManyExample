@@ -13,7 +13,7 @@ namespace AdvancedExample
             _storage = new ObjectsAndTagsStorage(@"F:\DataArchive\db.links");
             _storage.InitMarkers();
             _storage.GenerateData(100000000, 10000, 10);
-            _tags = new uint[] { _storage.GetTag(), _storage.GetTag() };
+            _tags = new uint[] { _storage.GetTag(), _storage.GetTag(), _storage.GetTag(), _storage.GetTag(), _storage.GetTag() };
         }
 
         [Benchmark]
