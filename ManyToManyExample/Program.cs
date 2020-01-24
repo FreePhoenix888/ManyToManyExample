@@ -16,25 +16,22 @@ namespace ManyToManyExample
         private static uint _root;
         private static uint _object;
         private static uint _tag;
-        private static uint _tagsProperty;
 
-        static void Main(string[] args)
+        static void Main()
         {
-            LinksConstants<uint> constants = new LinksConstants<uint>(enableExternalReferencesSupport: true);
+            var constants = new LinksConstants<uint>(enableExternalReferencesSupport: true);
+            using var memory = new Platform.Memory.FileMappedResizableDirectMemory("db.links");
+            using var disposableLinks = new ResizableDirectMemoryLinks<uint>(memory, ResizableDirectMemoryLinks<uint>.DefaultLinksSizeStep, constants, useAvlBasedIndex: false);
 
-            using (var memory = new Platform.Memory.FileMappedResizableDirectMemory("db.links"))
-            using (var disposableLinks = new ResizableDirectMemoryLinks<uint>(memory, ResizableDirectMemoryLinks<uint>.DefaultLinksSizeStep, constants, useAvlBasedIndex: false))
-            {
-                var links = disposableLinks.DecorateWithAutomaticUniquenessAndUsagesResolution();
-                links = new LinksItselfConstantToSelfReferenceResolver<uint>(links);
+            var links = disposableLinks.DecorateWithAutomaticUniquenessAndUsagesResolution();
+            links = new LinksItselfConstantToSelfReferenceResolver<uint>(links);
 
-                _addressToRawNumberConverter = new AddressToRawNumberConverter<uint>();
+            _addressToRawNumberConverter = new AddressToRawNumberConverter<uint>();
 
-                InitMarkers(links);
-                GenerateData(links);
-                QueryFromTagsByObjects(links);
-                QueryFromObjecsByTags(links);
-            }
+            InitMarkers(links);
+            GenerateData(links);
+            QueryFromTagsByObjects(links);
+            QueryFromObjecsByTags(links);
         }
 
         private static void InitMarkers(ILinks<uint> links)
@@ -43,11 +40,9 @@ namespace ManyToManyExample
             //  root
             //  object
             //  tag
-            //  tagsProperty
             _root = links.GetOrCreate(1U, 1U);
             _object = links.GetOrCreate(_root, _addressToRawNumberConverter.Convert(1U));
             _tag = links.GetOrCreate(_root, _addressToRawNumberConverter.Convert(2U));
-            _tagsProperty = links.GetOrCreate(_root, _addressToRawNumberConverter.Convert(3U));
         }
 
         private static void GenerateData(ILinks<uint> links)
@@ -57,10 +52,10 @@ namespace ManyToManyExample
             // Tags
             //  (tag1: tag1 tag)
             // Objects to Tags
-            //  ((object1 tagsProperty) tag1)
-            //  ((object1 tagsProperty) tag2)
-            //  ((object2 tagsProperty) tag1)
-            //  ((object2 tagsProperty) tag2)
+            //  (object1 tag1)
+            //  (object1 tag2)
+            //  (object2 tag1)
+            //  (object2 tag2)
 
             var any = links.Constants.Any;
             if (links.Count(any, any, _object) == 0 && links.Count(any, any, _tag) == 0)
@@ -85,15 +80,15 @@ namespace ManyToManyExample
                 {
                     var @object = objects[random.Next(0, objects.Count)];
                     var tag = tags[random.Next(0, tags.Count)];
-                    links.GetOrCreate(links.GetOrCreate(@object, _tagsProperty), tag);
+                    links.GetOrCreate(@object, tag);
                 }
             }
         }
 
         private static void QueryFromTagsByObjects(ILinks<uint> links)
         {
-            uint @object = GetObject(links);
-            List<uint> tags = GetTagsByObject(links, @object);
+            var @object = GetObject(links);
+            var tags = GetTagsByObject(links, @object);
             Console.WriteLine("Tags: ");
             for (int i = 0; i < tags.Count; i++)
             {
@@ -103,20 +98,21 @@ namespace ManyToManyExample
 
         private static List<uint> GetTagsByObject(ILinks<uint> links, uint @object)
         {
-            List<uint> tags = new List<uint>();
-            var property = links.SearchOrDefault(@object, _tagsProperty);
-            if (property != links.Constants.Null)
+            var tags = new List<uint>();
+            var any = links.Constants.Any;
+            var @continue = links.Constants.Continue;
+            var target = links.Constants.TargetPart;
+            var query = new Link<uint>(any, @object, any);
+            links.Each(link =>
             {
-                var any = links.Constants.Any;
-                var @continue = links.Constants.Continue;
-                var target = links.Constants.TargetPart;
-                var query = new Link<uint>(any, property, any);
-                links.Each(link =>
+                // Ignore objects itself
+                if (Point<uint>.IsPartialPoint(link))
                 {
-                    tags.Add(link[target]);
                     return @continue;
-                }, query);
-            }
+                }
+                tags.Add(link[target]);
+                return @continue;
+            }, query);
             return tags;
         }
 
@@ -127,8 +123,8 @@ namespace ManyToManyExample
 
         private static void QueryFromObjecsByTags(ILinks<uint> links)
         {
-            uint tag = GetTag(links);
-            List<uint> objects = GetObjectsByTag(links, tag);
+            var tag = GetTag(links);
+            var objects = GetObjectsByTag(links, tag);
             Console.WriteLine("Objects: ");
             for (int i = 0; i < objects.Count; i++)
             {
@@ -138,18 +134,17 @@ namespace ManyToManyExample
 
         private static List<uint> GetObjectsByTag(ILinks<uint> links, uint tag)
         {
-            HashSet<uint> objects = new HashSet<uint>();
+            var objects = new List<uint>();
             var any = links.Constants.Any;
             var @continue = links.Constants.Continue;
             var source = links.Constants.SourcePart;
             var query = new Link<uint>(any, any, tag);
             links.Each(link =>
             {
-                var @object = links.GetLink(link[source])[source];
-                objects.Add(@object);
+                objects.Add(link[source]);
                 return @continue;
             }, query);
-            return objects.ToList();
+            return objects;
         }
 
         private static uint GetTag(ILinks<uint> links)
