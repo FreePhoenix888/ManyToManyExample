@@ -150,45 +150,27 @@ namespace AdvancedExample
 
         public List<uint> GetObjectsByAllTags(params uint[] tags)
         {
-            var matchedObjects = new HashSet<uint>();
-            var nonMatchedObjects = new HashSet<uint>();
-            AddObjectsByAllTag(matchedObjects, nonMatchedObjects, tags);
-            return matchedObjects.ToList();
+            var objects = new List<uint>();
+            AddObjectsByAllTag(objects, tags);
+            return objects;
         }
 
-        private void AddObjectsByAllTag(HashSet<uint> matchedObjects, HashSet<uint> nonMatchedObjects, params uint[] tags)
+        private void AddObjectsByAllTag(List<uint> objects, params uint[] tags)
         {
             var any = _links.Constants.Any;
             var @continue = _links.Constants.Continue;
             var source = _links.Constants.SourcePart;
-            for (var i = 0; i < tags.Length; i++)
+            var lastTag = tags[tags.Length - 1];
+            var query = new Link<uint>(any, any, lastTag);
+            _links.Each(link =>
             {
-                if (i > 0 && matchedObjects.Count == 0)
+                var @object = link[source];
+                if (ObjectContainsAllTags(@object, tags))
                 {
-                    break;
+                    objects.Add(@object);
                 }
-                var query = new Link<uint>(any, any, tags[i]);
-                _links.Each(link =>
-                {
-                    var @object = link[source];
-                    if (nonMatchedObjects.Contains(@object))
-                    {
-                        return @continue;
-                    }
-                    if (!matchedObjects.Contains(@object))
-                    {
-                        if (ObjectContainsAllTags(@object, tags))
-                        {
-                            matchedObjects.Add(@object);
-                        }
-                        else
-                        {
-                            nonMatchedObjects.Add(@object);
-                        }
-                    }
-                    return @continue;
-                }, query);
-            }
+                return @continue;
+            }, query);
         }
 
         private bool ObjectContainsAllTags(uint @object, params uint[] tags)
