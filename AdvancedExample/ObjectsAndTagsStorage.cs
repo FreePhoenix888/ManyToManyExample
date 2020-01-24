@@ -177,8 +177,7 @@ namespace AdvancedExample
                     }
                     if (!matchedObjects.Contains(@object))
                     {
-                        bool matched = CheckObjectContainsAllTags(@object, tags);
-                        if (matched)
+                        if (ObjectContainsAllTags(@object, tags))
                         {
                             matchedObjects.Add(@object);
                         }
@@ -192,7 +191,7 @@ namespace AdvancedExample
             }
         }
 
-        private bool CheckObjectContainsAllTags(uint @object, params uint[] tags)
+        private bool ObjectContainsAllTags(uint @object, params uint[] tags)
         {
             for (var i = 0; i < tags.Length; i++)
             {
