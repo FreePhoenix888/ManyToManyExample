@@ -151,7 +151,14 @@ namespace AdvancedExample
         public List<uint> GetObjectsByAllTags(params uint[] tags)
         {
             var objects = new List<uint>();
-            AddObjectsByAllTag(objects, tags);
+            if (tags.Length > 1)
+            {
+                AddObjectsByAllTag(objects, tags);
+            }
+            else if (tags.Length == 1)
+            {
+                AddObjectsByTag(objects, tags[0]);
+            }
             return objects;
         }
 
@@ -211,6 +218,12 @@ namespace AdvancedExample
         private List<uint> GetObjectsByTag(uint tag)
         {
             var objects = new List<uint>();
+            AddObjectsByTag(objects, tag);
+            return objects;
+        }
+
+        private void AddObjectsByTag(List<uint> objects, uint tag)
+        {
             var any = _links.Constants.Any;
             var @continue = _links.Constants.Continue;
             var source = _links.Constants.SourcePart;
@@ -220,7 +233,6 @@ namespace AdvancedExample
                 objects.Add(link[source]);
                 return @continue;
             }, query);
-            return objects;
         }
 
         public uint GetTag()
