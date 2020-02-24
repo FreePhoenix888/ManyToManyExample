@@ -18,7 +18,7 @@ namespace DataLayer
         private readonly ILinks<uint> _links;
         private readonly FileMappedResizableDirectMemory _memory;
         private readonly ResizableDirectMemoryLinks<uint> _memoryManager;
-        private AddressToRawNumberConverter<uint> _addressToRawNumberConverter;
+        private readonly AddressToRawNumberConverter<uint> _addressToRawNumberConverter;
         private uint _root;
         private uint _object;
         private uint _tag;
@@ -174,12 +174,14 @@ namespace DataLayer
             var any = _links.Constants.Any;
             var @continue = _links.Constants.Continue;
             var source = _links.Constants.SourcePart;
-            var lastTag = tags[tags.Length - 1];
+            var lengthMinusOne = tags.Length - 1;
+            var lastTag = tags[lengthMinusOne];
+            var tagsExceptLastOne = new ArraySegment<uint>(tags, 0, lengthMinusOne);
             var query = new Link<uint>(any, any, lastTag);
             _links.Each(link =>
             {
                 var @object = link[source];
-                if (ObjectContainsAllTags(@object, tags))
+                if (ObjectContainsAllTags(@object, tagsExceptLastOne))
                 {
                     objects.Add(@object);
                 }
@@ -187,9 +189,9 @@ namespace DataLayer
             }, query);
         }
 
-        private bool ObjectContainsAllTags(uint @object, params uint[] tags)
+        private bool ObjectContainsAllTags(uint @object, IList<uint> tags)
         {
-            for (var i = 0; i < tags.Length; i++)
+            for (var i = 0; i < tags.Count; i++)
             {
                 if (!_links.Exists(@object, tags[i]))
                 {

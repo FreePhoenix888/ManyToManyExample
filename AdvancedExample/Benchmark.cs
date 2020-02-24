@@ -12,7 +12,7 @@ namespace AdvancedExample
 
         public AdvancedExampleBenchmark()
         {
-            _storage = new ObjectsAndTagsStorage(@"F:\DataArchive\db.links", 48L * 1024L * 1024L * 1024L);
+            _storage = new ObjectsAndTagsStorage(@"F:\db.links", 48L * 1024L * 1024L * 1024L);
             _storage.InitMarkers();
             _storage.GenerateData(100000000, 10000, 10);
             _tags2 = new uint[] { _storage.GetTag(), _storage.GetTag() };
